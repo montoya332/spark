@@ -9,3 +9,11 @@ bin/
 /modules
 /project/
 /target
+
+
+.gradle/
+*.iml
+*.ipr
+*.iws
+out/
+build/
