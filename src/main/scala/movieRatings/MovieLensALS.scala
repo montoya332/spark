@@ -29,13 +29,9 @@ object MovieLensALS {
     // load personal ratings
     val myRatings: Seq[Rating] = loadRatings("in/ml-latest-small/myRatings.csv")
     val myRatingsRDD = sc.parallelize(myRatings, 1)
-
+    val myId = myRatingsRDD.first().user
     // load ratings and movie titles
-
-    val movieLensHomeDir = "in/ml-latest-small/"
-
-    val ratingsRDD = sc.textFile("in/ml-latest-small/ratings.csv").filter(r => r!="userId,movieId,rating,timestamp")
-      .map { line =>
+    val ratingsRDD = sc.textFile("in/ml-latest-small/ratings.csv").filter(r => r!="userId,movieId,rating,timestamp").map { line =>
         val fields = line.split(Utils.COMMA_DELIMITER, -1)
         // format: (timestamp % 10, Rating(userId, movieId, rating))
         (fields(3).toLong % 10, Rating(fields(0).toInt, fields(1).toInt, fields(2).toDouble))
@@ -48,15 +44,14 @@ object MovieLensALS {
     }
 
     val ratings = ratingsRDD
+
     val movies = moviesRDD.collect().toMap
 
     val numRatings = ratings.count()
     val numUsers = ratings.map(_._2.user).distinct().count()
     val numMovies = ratings.map(_._2.product).distinct().count()
 
-    println("Got " + numRatings + " ratings from "
-      + numUsers + " users on " + numMovies + " movies.")
-
+    println("Got " + numRatings + " ratings from " + numUsers + " users on " + numMovies + " movies.")
 
     // split ratings into train (60%), validation (20%), and test (20%) based on the
     // last digit of the timestamp, add myRatings to train, and cache them
@@ -80,9 +75,8 @@ object MovieLensALS {
     println("Training: " + numTraining + ", validation: " + numValidation + ", test: " + numTest)
 
     // train models and evaluate them on the validation set
-
     val ranks = List(8, 12)
-    val lambdas = List(0.1, 10.0)
+    val lambdas = List(1.0, 10.0)
     val numIters = List(10, 20)
     var bestModel: Option[MatrixFactorizationModel] = None
     var bestValidationRmse = Double.MaxValue
@@ -121,11 +115,12 @@ object MovieLensALS {
     // make personalized recommendations
 
     val myRatedMovieIds = myRatings.map(_.product).toSet
-    println("My Rated Movie count: " + myRatedMovieIds.size)
+    println("My Rated Movies count: " + myRatedMovieIds.size)
     val candidates = sc.parallelize(movies.keys.filter(!myRatedMovieIds.contains(_)).toSeq)
     println("Candidate Movies count: " + candidates.count)
+
     val recommendations = bestModel.get
-      .predict(candidates.map((0, _)))
+      .predict(candidates.map((myId, _)))
       .collect()
       .sortBy(- _.rating)
       .take(50)
