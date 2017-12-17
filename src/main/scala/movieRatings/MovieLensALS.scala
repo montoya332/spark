@@ -76,7 +76,7 @@ object MovieLensALS {
 
     // train models and evaluate them on the validation set
     val ranks = List(8, 12)
-    val lambdas = List(1.0, 10.0)
+    val lambdas = List(0.1, 10.0)
     val numIters = List(10, 20)
     var bestModel: Option[MatrixFactorizationModel] = None
     var bestValidationRmse = Double.MaxValue
