@@ -2,16 +2,16 @@ package movieRatings
 
 import java.io.File
 
-import scala.io.Source
+import common.Utils
 
+import scala.io.Source
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.rdd._
-import org.apache.spark.mllib.recommendation.{ALS, Rating, MatrixFactorizationModel}
+import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
 
 object MovieLensALS {
 
@@ -36,13 +36,13 @@ object MovieLensALS {
 
     val ratingsRDD = sc.textFile("in/ml-latest-small/ratings.csv").filter(r => r!="userId,movieId,rating,timestamp")
       .map { line =>
-        val fields = line.split(",")
+        val fields = line.split(Utils.COMMA_DELIMITER, -1)
         // format: (timestamp % 10, Rating(userId, movieId, rating))
         (fields(3).toLong % 10, Rating(fields(0).toInt, fields(1).toInt, fields(2).toDouble))
       }
 
     val moviesRDD: RDD[(Int, String)] = sc.textFile("in/ml-latest-small/movies.csv").filter(r => r!="movieId,title,genres").map { line =>
-      val fields = line.split(",")
+      val fields = line.split(Utils.COMMA_DELIMITER, -1)
       // format: (movieId, movieName)
       (fields(0).toInt, fields(1))
     }
@@ -154,7 +154,7 @@ object MovieLensALS {
   def loadRatings(path: String): Seq[Rating] = {
     val lines: Iterator[String] = Source.fromFile(path).getLines()
     val ratings = lines.drop(1).map { line =>
-      val fields = line.split(",")
+      val fields = line.split(Utils.COMMA_DELIMITER, -1)
       Rating(fields(0).toInt, fields(1).toInt, fields(2).toDouble)
     }.filter(_.rating > 0.0)
     if (ratings.isEmpty) {
