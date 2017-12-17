@@ -16,12 +16,11 @@ object loadingFiles {
     val conf = new SparkConf().setAppName("loadingFiles").setMaster(masterSet)
     val sc = new SparkContext(conf)
 
-    val myRatings: Seq[Rating] = loadRatings("in/ml-latest-small/ratings.csv")
+    val myRatings: Seq[Rating] = loadRatings("in/ml-latest-small/myRatings.csv")
     val myRatingsRDD = sc.parallelize(myRatings, 1)
 
     //myRatingsRDD.saveAsTextFile("out/movieRatings/loadingFiles-" + masterSet + "-" + System.currentTimeMillis)
-    val ratingsFile = sc.textFile(new File( "in/ml-latest-small/ratings.csv").toString)
-    val ratings = ratingsFile.filter(r => r!=ratingsFile.first)
+    val ratingsRDD = sc.textFile("in/ml-latest-small/ratings.csv").filter(r => r!="userId,movieId,rating,timestamp")
       .map { line =>
       val fields = line.split(",")
       // format: (timestamp % 10, Rating(userId, movieId, rating))
@@ -33,10 +32,6 @@ object loadingFiles {
       // format: (movieId, movieName)
       (fields(0).toInt, fields(1))
     }
-    val test = moviesRDD.collect()
-   // moviesRDD.saveAsTextFile("out/movieRatings/loadingFiles-" + masterSet + "-" + System.currentTimeMillis)
-
-
   }
 
   /** Load ratings from file. */
