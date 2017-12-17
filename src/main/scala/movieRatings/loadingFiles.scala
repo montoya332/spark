@@ -32,6 +32,15 @@ object loadingFiles {
       // format: (movieId, movieName)
       (fields(0).toInt, fields(1))
     }
+
+    //get ratings of user on top 50 popular movies
+    val mostRatedMovieIds = ratingsRDD.map(_._2.product) //extract movieId
+      .countByValue      //count ratings per movie
+      .toSeq             //convert map to seq
+      .sortBy(- _._2)    //sort by rating count in decreasing order
+      .take(50)          //take 50 most rated
+      .map(_._1)         //get movie ids
+    for ((movieId) <- mostRatedMovieIds) println( movieId)
   }
 
   /** Load ratings from file. */

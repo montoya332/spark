@@ -56,14 +56,7 @@ object MovieLensALS {
 
     println("Got " + numRatings + " ratings from "
       + numUsers + " users on " + numMovies + " movies.")
-    //get ratings of user on top 50 popular movies
-    val mostRatedMovieIds = ratings.map(_._2.product) //extract movieId
-          .countByValue      //count ratings per movie
-          .toSeq             //convert map to seq
-          .sortBy(- _._2)    //sort by rating count in decreasing order
-          .take(50)          //take 50 most rated
-          .map(_._1)         //get movie ids
-    //for ((movieId) <- mostRatedMovieIds) println( movieId)
+
 
     // split ratings into train (60%), validation (20%), and test (20%) based on the
     // last digit of the timestamp, add myRatings to train, and cache them
