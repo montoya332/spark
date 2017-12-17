@@ -9,7 +9,11 @@ object CountWikiSpark {
 
     val textFile = sc.textFile("in/wikiSpark.text") //: RDD[String]
     val words = textFile.flatMap(line => line.split(" ")).filter(!_.isEmpty)
-    val wordCountsRDD = words.map(word => (word.toLowerCase, 1)).reduceByKey(_ + _)
+    val wordCountsRDD = words
+      .map(word => (word.toLowerCase, 1))
+      .reduceByKey(_ + _)
+      .sortBy(_._2)
+
     val wordCounts = wordCountsRDD.collect()
 
     println("CountByValue:")
